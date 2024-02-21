@@ -2,9 +2,25 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+
+class Tank
+{
+    public float speed = 15.0f;
+    Player player; // 포함 관계 Nested Prefab(Pre_Fabrication)
+}
 // 벡터
 // 1. 위치 벡터
 // 2. 방향 벡터
+
+class FastTank : Tank
+{
+
+}
+
+class Player
+{
+    
+}
 
 struct MyVector
 {
@@ -56,6 +72,19 @@ public class PlayerController : MonoBehaviour
         // 2. 실제 방향 : normalized 이용
 
 
+
+        Managers.Input.KeyAction -= OnKeyboard;
+        Managers.Input.KeyAction += OnKeyboard;
+
+        Tank tank1 = new Tank();
+        tank1.speed = 11.0f;  
+        Tank tank2 = new Tank();
+        tank2.speed = 22.0f;
+        Tank tank3 = new Tank();
+        Tank tank4 = new Tank();
+        Tank tank5 = new Tank();
+
+
     }
 
     /* GameObject(Player)
@@ -85,6 +114,13 @@ public class PlayerController : MonoBehaviour
         //transform.rotation = Quaternion.Euler(0.0f, _yAngle, 0.0f);
 
         
+
+
+    }
+
+    void OnKeyboard()
+    {
+
         if (Input.GetKey(KeyCode.W))
         {
             transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.LookRotation(Vector3.forward), 0.2f);
@@ -113,7 +149,5 @@ public class PlayerController : MonoBehaviour
             transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.LookRotation(Vector3.right), 0.2f);
             transform.position += Vector3.right * Time.deltaTime * _speed;
         }
-
-
     }
 }
