@@ -52,8 +52,8 @@ public class PlayerController : MonoBehaviour
 {
     [SerializeField]
     float _speed = 10.0f; // public으로 두면 유니티에서 속도 변경 가능
-   
-
+    
+    
     void Start()
     {
         MyVector to = new MyVector(10.0f, 0.0f, 0.0f);

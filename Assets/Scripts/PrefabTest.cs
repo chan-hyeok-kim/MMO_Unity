@@ -15,11 +15,16 @@ public class PrefabTest : MonoBehaviour
     GameObject tank;
     void Start()
     {
-        prefab = Resources.Load<GameObject>("Prefabs/Tank"); 
-                                            // 경로명: Assets/Resources/ 밑부터 시작
-        tank = Instantiate(prefab); // 객체 생성
+        tank = Managers.Resource.Instantiate("Tank");
 
-        Destroy(tank, 3.0f);  // 매개변수(삭제할 대상, 몇초 후)
+       // Managers.Resource.Destroy(tank);
+        Destroy(tank, 3.0f); // 매개변수(삭제할 대상, 몇초 후)
+
+
+
+      //  prefab = Resources.Load<GameObject>("Prefabs/Tank"); 
+                                            // 경로명: Assets/Resources/ 밑부터 시작
+      //  tank = Instantiate(prefab); // 객체 생성
     }
 
     
