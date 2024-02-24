@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using Unity.VisualScripting;
 using UnityEngine;
 
 public class TestCollision : MonoBehaviour
@@ -32,17 +33,71 @@ public class TestCollision : MonoBehaviour
 
     void Update()
     {
-                 //월드 좌표(플레이어가 바라보는 방향을 월드좌표로)
-        Vector3 look = transform.TransformDirection(Vector3.forward);
+        //Local <-> World <-> ViewPort <-> Screen(화면) 
+        // Screen: 유니티 왼쪽아래 뷰, 2D라서 X,Y좌표만 취급. 직접적인 수치로 나타남
+        // ViewPort: Screen과 비슷하나, 수치를 비율로만 표시해줌
 
-        Debug.DrawRay(transform.position + Vector3.up, look * 10, Color.red);
+        //월드 좌표(플레이어가 바라보는 방향을 월드좌표로)
+        /* Vector3 look = transform.TransformDirection(Vector3.forward);
 
-        RaycastHit[] hits;
-        hits = Physics.RaycastAll(transform.position, look, 10);
+         Debug.DrawRay(transform.position + Vector3.up, look * 10, Color.red);
 
-        foreach(RaycastHit hit in hits)
+         RaycastHit[] hits;
+         hits = Physics.RaycastAll(transform.position, look, 10);
+
+         foreach(RaycastHit hit in hits)
+         {
+             Debug.Log($"RayCast! {hit.collider.gameObject.name} !");
+         }*/
+
+        //4-5. 투영
+        //Debug.Log(Input.mousePosition);
+        //Debug.Log(Camera.main.ScreenToViewportPoint( Input.mousePosition ));
+
+
+        //4-6. RayCasting2
+        //(1) 풀어쓴 방법
+        /*if (Input.GetMouseButtonDown(0))
         {
-            Debug.Log($"RayCast! {hit.collider.gameObject.name} !");
+            Vector3 mousePos = Camera.main.ScreenToWorldPoint(new Vector3(Input.mousePosition.x, Input.mousePosition.y, Camera.main.nearClipPlane));
+            Vector3 dir = mousePos - Camera.main.transform.position;
+
+            dir = dir.normalized; //방향은 똑같은데 크기는 1인 애로 맞추기
+
+            Debug.DrawRay(Camera.main.transform.position, dir * 100.0f , Color.red, 1.0f);
+
+            RaycastHit hit;
+            if (Physics.Raycast(Camera.main.transform.position, dir, out hit, 100.0f))
+            {
+                Debug.Log($"Raycast Camera @ {hit.collider.gameObject.name}");
+            }
+        }*/
+
+        // (2) ray 이용
+        // 실전 응용예시: 땅을 찍었을 때 그 위치로 플레이어 이동
+        if (Input.GetMouseButtonDown(0))
+        {
+            Ray ray = Camera.main.ScreenPointToRay( Input.mousePosition );
+
+            Debug.DrawRay(Camera.main.transform.position, ray.direction * 100.0f, Color.red, 1.0f);
+
+            //4-7. Layer Mask
+            int mask = (1 << 8) | (1 << 9); // or연산이라서 숫자 768이라 볼수 있음
+            //int mask = (1 << 9); 1을 왼쪽으로 8번 민다
+
+            LayerMask layerMask = LayerMask.GetMask("Monster") | LayerMask.GetMask("Wall"); // int로 자동변환됨
+
+            RaycastHit hit;
+            if(Physics.Raycast(ray, out hit, 100.0f, layerMask))
+            {
+                Debug.Log($"Raycast Camera @ {hit.collider.gameObject.tag}");
+
+            }
+
+
+           
         }
+
+
     }
 }
