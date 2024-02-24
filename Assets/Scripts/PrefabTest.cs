@@ -15,7 +15,7 @@ public class PrefabTest : MonoBehaviour
     GameObject tank;
     void Start()
     {
-        tank = Managers.Resource.Instantiate("Tank");
+       // tank = Managers.Resource.Instantiate("Tank");
 
        // Managers.Resource.Destroy(tank);
         Destroy(tank, 3.0f); // 매개변수(삭제할 대상, 몇초 후)

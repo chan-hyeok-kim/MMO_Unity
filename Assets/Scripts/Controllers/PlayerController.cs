@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -52,7 +53,9 @@ public class PlayerController : MonoBehaviour
 {
     [SerializeField]
     float _speed = 10.0f; // public으로 두면 유니티에서 속도 변경 가능
-    
+
+   
+    Vector3 _destPos;
     
     void Start()
     {
@@ -73,17 +76,55 @@ public class PlayerController : MonoBehaviour
 
 
 
-        Managers.Input.KeyAction -= OnKeyboard;
-        Managers.Input.KeyAction += OnKeyboard;
+        // Managers.Input.KeyAction -= OnKeyboard;
+        // Managers.Input.KeyAction += OnKeyboard;
+        Managers.Input.MouseAction -= OnMouseClicked;
+        Managers.Input.MouseAction += OnMouseClicked;
 
-        Tank tank1 = new Tank();
-        tank1.speed = 11.0f;  
-        Tank tank2 = new Tank();
-        tank2.speed = 22.0f;
-        Tank tank3 = new Tank();
-        Tank tank4 = new Tank();
-        Tank tank5 = new Tank();
 
+        /*   Tank tank1 = new Tank();
+           tank1.speed = 11.0f;  
+           Tank tank2 = new Tank();
+           tank2.speed = 22.0f;
+           Tank tank3 = new Tank();
+           Tank tank4 = new Tank();
+           Tank tank5 = new Tank();*/
+
+
+    }
+
+    void OnMouseClicked(Define.MouseEvent evt)
+    {
+        if (_state == PlayerState.Die)
+            return;
+       // if (evt != Define.MouseEvent.Click)
+       //     return;
+
+        // (2) ray 이용
+        // 실전 응용예시: 땅을 찍었을 때 그 위치로 플레이어 이동
+       
+        Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+
+        Debug.DrawRay(Camera.main.transform.position, ray.direction * 100.0f, Color.red, 1.0f);
+
+        //4-7. Layer Mask
+        int mask = (1 << 8) | (1 << 9); // or연산이라서 숫자 768이라 볼수 있음
+        //int mask = (1 << 9); 1을 왼쪽으로 8번 민다
+
+
+        RaycastHit hit;
+        if (Physics.Raycast(ray, out hit, 100.0f, LayerMask.GetMask("Wall")))
+        {
+            _destPos = hit.point;
+            _state = PlayerState.Moving;
+
+            //Debug.Log($"Raycast Camera @ {hit.collider.gameObject.tag}");
+
+        }
+
+
+
+        
 
     }
 
@@ -92,6 +133,72 @@ public class PlayerController : MonoBehaviour
           PlayerController(*) 
      */
     float _yAngle = 0.0f;
+    //float wait_run_ratio = 0;
+   
+
+    public enum PlayerState
+    {
+        Die,
+        Moving,
+        Idle, 
+     
+    }
+
+    PlayerState _state = PlayerState.Idle;
+
+    void UpdateDie()
+    {
+        // 아무것도 못함
+    }
+
+    void UpdateMoving()
+    {
+        Vector3 dir = _destPos - transform.position;
+        if (dir.magnitude < 0.0001f)
+        {
+            _state = PlayerState.Idle;
+        }
+        else
+        {
+            float moveDist = Math.Clamp(_speed * Time.deltaTime, 0, dir.magnitude);
+
+            /*  Math.Clamp(a,b,c) 메서드
+                *  : a란 값이 들어왔을 때 b보다 작으면 b,
+                *    c보다 크면 c로 리턴
+                */
+            transform.position += dir.normalized * moveDist;
+            //transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.LookRotation(dir), 20 * Time.deltaTime);
+
+            float smoothTime = 0.1f; // 보간에 걸리는 시간
+            Vector3 currentVelocity = Vector3.zero;
+            transform.rotation = Quaternion.LookRotation(Vector3.SmoothDamp(transform.forward, dir, ref currentVelocity, smoothTime));
+
+            //transform.LookAt(_destPos); // destPos를 바라보기
+        }
+
+        //애니메이션
+        //wait_run_ratio = Mathf.Lerp(wait_run_ratio, 1, 10.0f * Time.deltaTime);
+        Animator anim = GetComponent<Animator>();
+        anim.SetFloat("speed", _speed);
+
+        //anim.SetFloat("wait_run_ratio", wait_run_ratio); // 1
+        //anim.Play("WAIT_RUN");
+    }
+
+    void UpdateIdle()
+    {
+        //애니메이션
+        //wait_run_ratio = Mathf.Lerp(wait_run_ratio, 0, 10.0f * Time.deltaTime);
+        Animator anim = GetComponent<Animator>();
+        //현재 게임 상태에 대한 정보 넘겨준다
+        anim.SetFloat("speed", 0);
+
+        //anim.SetFloat("wait_run_ratio", wait_run_ratio); // 0
+        //anim.Play("WAIT_RUN");
+    }
+
+
+
     void Update()
     {
         /*  Local 좌표 -> World 좌표 
@@ -113,12 +220,34 @@ public class PlayerController : MonoBehaviour
         // 그래서 쿼터, 4번째 축이 필요함
         //transform.rotation = Quaternion.Euler(0.0f, _yAngle, 0.0f);
 
-        
+
+
+       
+        /* state 패턴 - 규모 작을 때 좋음
+         *  (1) 1번에 1개의 상태만 가능
+         *  (2) 움직이면서 스킬쓰려면 state패턴은 못씀
+         *  
+         */
+        switch(_state)
+        {
+            case PlayerState.Die:
+                UpdateDie();
+                break;
+            case PlayerState.Moving:
+                UpdateMoving();
+                break;
+            case PlayerState.Idle:
+                UpdateIdle();
+                break;
+        }
+       
+       
+
 
 
     }
 
-    void OnKeyboard()
+   /* void OnKeyboard()
     {
 
         if (Input.GetKey(KeyCode.W))
@@ -149,5 +278,9 @@ public class PlayerController : MonoBehaviour
             transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.LookRotation(Vector3.right), 0.2f);
             transform.position += Vector3.right * Time.deltaTime * _speed;
         }
-    }
+        _moveToDest = false;
+    }*/
+
+
+
 }
