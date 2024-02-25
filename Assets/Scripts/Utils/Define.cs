@@ -4,6 +4,13 @@ using UnityEngine;
 
 public class Define 
 {
+
+    public enum UIEvent
+    {
+        Cilck,
+        Drag,
+    }
+
     public enum MouseEvent
     {
         Press,
@@ -15,4 +22,6 @@ public class Define
     {
         QuaterView,
     }
+
+
 }

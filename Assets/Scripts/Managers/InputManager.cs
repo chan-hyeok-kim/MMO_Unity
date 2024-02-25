@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.EventSystems;
 
 public class InputManager
 {
@@ -11,7 +12,10 @@ public class InputManager
     bool _pressed = false;
 
     public void onUpdate()
-    { 
+    {
+        if (EventSystem.current.IsPointerOverGameObject()) // UI클릭된 상황이면 리턴
+            return;
+
         if (Input.anyKey && KeyAction != null ) //anykey는 마우스랑 키 둘 다 인식
             KeyAction.Invoke();
 
