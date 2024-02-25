@@ -61,15 +61,11 @@ public class PlayerController : MonoBehaviour
     {
         MyVector to = new MyVector(10.0f, 0.0f, 0.0f);
         MyVector from = new MyVector(5.0f, 0.0f, 0.0f);
-       
         MyVector dir = to - from; // (5.0f, 0.0f, 0.0f);  
                                   // 이렇게 해서 얻을 수도 있지만,
                                   // 보통 magnitude랑 nomalized로 방향 벡터 정보를 얻는다
-                                  
         dir = dir.normalized; // (1.0f, 0.0f, 0.0f);  실제 방향 정보, 방향의 단위
-
         MyVector newPos = from + dir * _speed;
-
         // 방향 벡터 정보 2가지 
         // 1. 거리(크기) : magnitude 이용
         // 2. 실제 방향 : normalized 이용
@@ -78,18 +74,13 @@ public class PlayerController : MonoBehaviour
 
         // Managers.Input.KeyAction -= OnKeyboard;
         // Managers.Input.KeyAction += OnKeyboard;
-        Managers.Input.MouseAction -= OnMouseClicked;
+        Managers.Input.MouseAction -= OnMouseClicked;  //델리게이트
         Managers.Input.MouseAction += OnMouseClicked;
 
+        //Managers.Resource.Instantiate("UI/UI_Button");
 
-        /*   Tank tank1 = new Tank();
-           tank1.speed = 11.0f;  
-           Tank tank2 = new Tank();
-           tank2.speed = 22.0f;
-           Tank tank3 = new Tank();
-           Tank tank4 = new Tank();
-           Tank tank5 = new Tank();*/
 
+   
 
     }
 
@@ -145,6 +136,12 @@ public class PlayerController : MonoBehaviour
     }
 
     PlayerState _state = PlayerState.Idle;
+
+
+    /*void OnRunEvent(String a)
+    {
+        Debug.Log($"뚜벅 뚜벅~~! {a}");
+    }*/
 
     void UpdateDie()
     {
