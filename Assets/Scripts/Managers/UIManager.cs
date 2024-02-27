@@ -18,9 +18,48 @@ public class UIManager
         if(string.IsNullOrEmpty(name))
             name = typeof(T).Name;
 
-        Managers.Resource.Instantiate($"UI/Popup/{name}");
+        GameObject go = Managers.Resource.Instantiate($"UI/Popup/{name}");
+        T popup = Util.GetOrAddComponent<T>(go);
+        _popupStack.Push(popup);
+        
 
-        return null;
+        return popup;
+    }
+
+    public void ClosePopupUI(UI_Popup popup)
+    {
+        if (_popupStack.Count == 0)
+            return;
+
+        if(_popupStack.Peek() != popup)
+        {
+            Debug.Log("Cross Popup Failed!");
+            return;
+        }
+
+        ClosePopupUI();
+    }
+
+    public void ClosePopupUI()
+    {
+        if (_popupStack.Count == 0)
+            return; 
+        
+        UI_Popup popup= _popupStack.Pop();
+        Managers.Resource.Destroy(popup.gameObject);
+
+        popup = null;
+
+        _order--;
+        
+    }
+
+    public void CloseAllPopupUI()
+    {
+        while(_popupStack.Count > 0)
+        {
+            ClosePopupUI();
+        }
     }
 
 }

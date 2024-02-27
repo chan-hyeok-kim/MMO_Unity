@@ -22,6 +22,14 @@ public class ResourceManager
                                                    // 여기선 Object 안붙이면 위 메서드가 재귀호출됨
     }
 
+    public void Destroy(GameObject go)
+    {
+        if (go != null)
+            return;
+
+        Object.Destroy(go);
+    }
+
     public void Destroy(GameObject go, float time)
     {
         if(go != null)
