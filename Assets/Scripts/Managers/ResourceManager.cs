@@ -24,7 +24,7 @@ public class ResourceManager
 
     public void Destroy(GameObject go)
     {
-        if (go != null)
+        if (go == null)
             return;
 
         Object.Destroy(go);

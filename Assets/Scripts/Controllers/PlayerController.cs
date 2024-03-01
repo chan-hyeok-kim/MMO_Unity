@@ -77,12 +77,15 @@ public class PlayerController : MonoBehaviour
         Managers.Input.MouseAction -= OnMouseClicked;  //µ®∏Æ∞‘¿Ã∆Æ
         Managers.Input.MouseAction += OnMouseClicked;
 
-        //Managers.Resource.Instantiate("UI/UI_Button");
+        // Managers.Resource.Instantiate("UI/UI_Button");
 
         //TEMP
-        UI_Button ui = Managers.UI.ShowPopupUI<UI_Button>();
+        Managers.UI.ShowSceneUI<UI_Inven>();
 
-        Managers.UI.ClosePopupUI(ui);
+
+
+       // UI_Button ui = Managers.UI.ShowPopupUI<UI_Button>();
+       // Managers.UI.ClosePopupUI(ui);
 
     }
 

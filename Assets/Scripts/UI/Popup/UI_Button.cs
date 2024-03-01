@@ -32,8 +32,16 @@ public class UI_Button : UI_Popup
     public GameObject obj;
 
 
-    private void Start() // 바인딩하는 메서드
+
+    public void Start()
     {
+        Init(); 
+    }
+
+    public override void Init() // 바인딩하는 메서드
+    {
+        base.Init();
+
         Bind<Button>(typeof(Buttons));
         Bind<Text>(typeof(Texts));
         Bind<GameObject>(typeof(GameObjects));
@@ -45,6 +53,8 @@ public class UI_Button : UI_Popup
 
         GameObject go = GetImage((int)Images.ItemIcon).gameObject;
         AddUIEvent(go, (PointerEventData data) => { go.transform.position = data.position; }, Define.UIEvent.Drag);
+        
+
     }
 
     int _score = 0;

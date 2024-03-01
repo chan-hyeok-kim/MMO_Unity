@@ -5,8 +5,11 @@ using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
-public class UI_Base : MonoBehaviour
+public abstract class UI_Base : MonoBehaviour
 {
+    public abstract void Init();
+
+
     Dictionary<Type, UnityEngine.Object[]> _objects = new Dictionary<Type, UnityEngine.Object[]>();
 
     /* 리플렉션
@@ -14,9 +17,9 @@ public class UI_Base : MonoBehaviour
    * 코드 내에 모든 정보를 가져올 수 있다
    * 매개변수 Type 선언하고 호출할 때는 typeof(T)로 넣어주기
    */
-    protected void Bind<T>(Type type) where T : UnityEngine.Object
+    protected void Bind<T>(Type type) where T : UnityEngine.Object //바인딩
     {
-        String[] names = Enum.GetNames(type);
+        String[] names = Enum.GetNames(type);   
 
         UnityEngine.Object[] objects = new UnityEngine.Object[names.Length];
         _objects.Add(typeof(T), objects);
