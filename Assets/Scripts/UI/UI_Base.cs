@@ -14,8 +14,10 @@ public abstract class UI_Base : MonoBehaviour
 
     /* 리플렉션
    * 엑셀을 딱 찍어서
-   * 코드 내에 모든 정보를 가져올 수 있다
+   * 코드 내에 모든 정보를 가져올 수 있다(특히 Enum의 이름)
    * 매개변수 Type 선언하고 호출할 때는 typeof(T)로 넣어주기
+   * 
+   
    */
     protected void Bind<T>(Type type) where T : UnityEngine.Object //바인딩
     {
@@ -48,12 +50,13 @@ public abstract class UI_Base : MonoBehaviour
 
     }
 
+    protected GameObject GetObject(int idx) { return Get<GameObject>(idx); }
     protected Text GetText(int idx) { return Get<Text>(idx); }
     protected Button GetButton(int idx) { return Get<Button>(idx); }
     protected Image GetImage(int idx) { return Get<Image>(idx); }
 
 
-    public static void AddUIEvent(GameObject go, Action<PointerEventData> action, Define.UIEvent type = Define.UIEvent.Cilck)
+    public static void BindEvent(GameObject go, Action<PointerEventData> action, Define.UIEvent type = Define.UIEvent.Cilck)
     {
         UI_EventHandler evt = Util.GetOrAddComponent<UI_EventHandler>(go);
         

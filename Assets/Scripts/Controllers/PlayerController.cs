@@ -80,10 +80,8 @@ public class PlayerController : MonoBehaviour
         // Managers.Resource.Instantiate("UI/UI_Button");
 
         //TEMP
-        Managers.UI.ShowSceneUI<UI_Inven>();
 
-
-
+      //  Managers.UI.ShowSceneUI<UI_Inven>(); - >BaseScene으로 이사
        // UI_Button ui = Managers.UI.ShowPopupUI<UI_Button>();
        // Managers.UI.ClosePopupUI(ui);
 
