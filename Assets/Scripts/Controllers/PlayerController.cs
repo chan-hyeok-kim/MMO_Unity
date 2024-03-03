@@ -1,286 +1,213 @@
-using System;
-using System.Collections;
+ï»¿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.AI;
 
-
-class Tank
-{
-    public float speed = 15.0f;
-    Player player; // Æ÷ÇÔ °ü°è Nested Prefab(Pre_Fabrication)
-}
-// º¤ÅÍ
-// 1. À§Ä¡ º¤ÅÍ
-// 2. ¹æÇâ º¤ÅÍ
-
-class FastTank : Tank
-{
-
-}
-
-class Player
-{
-    
-}
-
-struct MyVector
-{
-    public float x;
-    public float y;
-    public float z;
-
-    public float magnitude { get { return Mathf.Sqrt(x * x + y * y + z * z); } }
-    public MyVector normalized { get { return new MyVector(x / magnitude, y / magnitude, z / magnitude); } }
-
-    public MyVector(float x, float y, float z) { this.x = x; this.y = y; this.z = z; }
-
-    public static MyVector operator +(MyVector a, MyVector b)
-    {
-        return new MyVector( a.x + b.x, a.y + b.y, a.z + b.z);
-    }
-
-    public static MyVector operator -(MyVector a, MyVector b)
-    {
-        return new MyVector(a.x - b.x, a.y - b.y, a.z - b.z);
-    }
-
-    public static MyVector operator *(MyVector a, float d)
-    {
-        return new MyVector(a.x * d, a.y * d, a.z * d);
-    }
-}
 public class PlayerController : MonoBehaviour
 {
-    [SerializeField]
-    float _speed = 10.0f; // publicÀ¸·Î µÎ¸é À¯´ÏÆ¼¿¡¼­ ¼Óµµ º¯°æ °¡´É
+	public enum PlayerState
+	{
+		Die,
+		Moving,
+		Idle,
+		Skill,
+	}
 
-   
-    Vector3 _destPos;
-    
-    void Start()
+	int _mask = (1 << (int)Define.Layer.Ground) | (1 << (int)Define.Layer.Monster);
+
+	PlayerStat _stat;
+	Vector3 _destPos;
+
+	[SerializeField]
+	PlayerState _state = PlayerState.Idle;
+
+	GameObject _lockTarget;
+
+	public PlayerState State
+	{
+		get { return _state; }
+		set
+		{
+			_state = value;
+
+			Animator anim = GetComponent<Animator>();
+			switch (_state)
+			{
+				case PlayerState.Die:
+					break;
+				case PlayerState.Idle:
+					anim.CrossFade("WAIT", 0f);
+					break; 
+				case PlayerState.Moving:
+					anim.CrossFade("RUN", 0.1f);
+					break;
+				case PlayerState.Skill:
+                    anim.SetBool("attack", true);
+                    anim.CrossFade("ATTACK", 0.1f, -1, 0);
+					break;
+			}
+		}
+	}
+
+	void Start()
     {
-        MyVector to = new MyVector(10.0f, 0.0f, 0.0f);
-        MyVector from = new MyVector(5.0f, 0.0f, 0.0f);
-        MyVector dir = to - from; // (5.0f, 0.0f, 0.0f);  
-                                  // ÀÌ·¸°Ô ÇØ¼­ ¾òÀ» ¼öµµ ÀÖÁö¸¸,
-                                  // º¸Åë magnitude¶û nomalized·Î ¹æÇâ º¤ÅÍ Á¤º¸¸¦ ¾ò´Â´Ù
-        dir = dir.normalized; // (1.0f, 0.0f, 0.0f);  ½ÇÁ¦ ¹æÇâ Á¤º¸, ¹æÇâÀÇ ´ÜÀ§
-        MyVector newPos = from + dir * _speed;
-        // ¹æÇâ º¤ÅÍ Á¤º¸ 2°¡Áö 
-        // 1. °Å¸®(Å©±â) : magnitude ÀÌ¿ë
-        // 2. ½ÇÁ¦ ¹æÇâ : normalized ÀÌ¿ë
+		_stat = gameObject.GetComponent<PlayerStat>();
 
+		Managers.Input.MouseAction -= OnMouseEvent;
+		Managers.Input.MouseAction += OnMouseEvent;	
+	}
 
+	void UpdateDie()
+	{
+		// ì•„ë¬´ê²ƒë„ ëª»í•¨
 
-        // Managers.Input.KeyAction -= OnKeyboard;
-        // Managers.Input.KeyAction += OnKeyboard;
-        Managers.Input.MouseAction -= OnMouseClicked;  //µ¨¸®°ÔÀÌÆ®
-        Managers.Input.MouseAction += OnMouseClicked;
+	}
 
-        // Managers.Resource.Instantiate("UI/UI_Button");
+	void UpdateMoving()
+	{
+		// ëª¬ìŠ¤í„°ê°€ ë‚´ ì‚¬ì •ê±°ë¦¬ë³´ë‹¤ ê°€ê¹Œìš°ë©´ ê³µê²©
+		if (_lockTarget != null)
+		{
+			_destPos = _lockTarget.transform.position;
+			float distance = (_destPos - transform.position).magnitude;
+			if (distance <= 1)
+			{
+				State = PlayerState.Skill;
+				return;
+			}
+		}
 
-        //TEMP
+		// ì´ë™
+		Vector3 dir = _destPos - transform.position;
+		if (dir.magnitude < 0.1f)
+		{
+			State = PlayerState.Idle;
+		}
+		else
+		{
+			NavMeshAgent nma = gameObject.GetOrAddComponent<NavMeshAgent>();
+			float moveDist = Mathf.Clamp(_stat.MoveSpeed * Time.deltaTime, 0, dir.magnitude);
+			nma.Move(dir.normalized * moveDist);
 
-      //  Managers.UI.ShowSceneUI<UI_Inven>(); - >BaseSceneÀ¸·Î ÀÌ»ç
-       // UI_Button ui = Managers.UI.ShowPopupUI<UI_Button>();
-       // Managers.UI.ClosePopupUI(ui);
+			Debug.DrawRay(transform.position + Vector3.up * 0.5f, dir.normalized, Color.green);
+			if (Physics.Raycast(transform.position + Vector3.up * 0.5f, dir, 1.0f, LayerMask.GetMask("Block")))
+			{
+				if (Input.GetMouseButton(0) == false) //ë§ˆìš°ìŠ¤ë¥¼ ëˆ„ë¥´ê³  ìˆì§€ ì•Šë‹¤ë©´
+					State = PlayerState.Idle;
+				return;
+			}
 
-    }
-
-    void OnMouseClicked(Define.MouseEvent evt)
-    {
-        if (_state == PlayerState.Die)
-            return;
-       // if (evt != Define.MouseEvent.Click)
-       //     return;
-
-        // (2) ray ÀÌ¿ë
-        // ½ÇÀü ÀÀ¿ë¿¹½Ã: ¶¥À» Âï¾úÀ» ¶§ ±× À§Ä¡·Î ÇÃ·¹ÀÌ¾î ÀÌµ¿
-       
-        Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
-
-        Debug.DrawRay(Camera.main.transform.position, ray.direction * 100.0f, Color.red, 1.0f);
-
-        //4-7. Layer Mask
-        int mask = (1 << 8) | (1 << 9); // or¿¬»êÀÌ¶ó¼­ ¼ıÀÚ 768ÀÌ¶ó º¼¼ö ÀÖÀ½
-        //int mask = (1 << 9); 1À» ¿ŞÂÊÀ¸·Î 8¹ø ¹Î´Ù
-
-
-        RaycastHit hit;
-        if (Physics.Raycast(ray, out hit, 100.0f, LayerMask.GetMask("Wall")))
-        {
-            _destPos = hit.point;
-            _state = PlayerState.Moving;
-
-            //Debug.Log($"Raycast Camera @ {hit.collider.gameObject.tag}");
-
-        }
-
-
-
-        
-
-    }
-
-    /* GameObject(Player)
-          Transform
-          PlayerController(*) 
-     */
-    float _yAngle = 0.0f;
-    //float wait_run_ratio = 0;
-   
-
-    public enum PlayerState
-    {
-        Die,
-        Moving,
-        Idle, 
-     
-    }
-
-    PlayerState _state = PlayerState.Idle;
-
-
-    /*void OnRunEvent(String a)
-    {
-        Debug.Log($"¶Ñ¹÷ ¶Ñ¹÷~~! {a}");
-    }*/
-
-    void UpdateDie()
-    {
-        // ¾Æ¹«°Íµµ ¸øÇÔ
-    }
-
-    void UpdateMoving()
-    {
-        Vector3 dir = _destPos - transform.position;
-        if (dir.magnitude < 0.0001f)
-        {
-            _state = PlayerState.Idle;
-        }
-        else
-        {
-            float moveDist = Math.Clamp(_speed * Time.deltaTime, 0, dir.magnitude);
-
-            /*  Math.Clamp(a,b,c) ¸Ş¼­µå
-                *  : a¶õ °ªÀÌ µé¾î¿ÔÀ» ¶§ bº¸´Ù ÀÛÀ¸¸é b,
-                *    cº¸´Ù Å©¸é c·Î ¸®ÅÏ
-                */
-            transform.position += dir.normalized * moveDist;
-            //transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.LookRotation(dir), 20 * Time.deltaTime);
-
-            float smoothTime = 0.1f; // º¸°£¿¡ °É¸®´Â ½Ã°£
+            float smoothTime = 0.1f; 
             Vector3 currentVelocity = Vector3.zero;
             transform.rotation = Quaternion.LookRotation(Vector3.SmoothDamp(transform.forward, dir, ref currentVelocity, smoothTime));
 
-            //transform.LookAt(_destPos); // destPos¸¦ ¹Ù¶óº¸±â
-        }
+           // transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.LookRotation(dir), 20 * Time.deltaTime);
+		}
+	}
 
-        //¾Ö´Ï¸ŞÀÌ¼Ç
-        //wait_run_ratio = Mathf.Lerp(wait_run_ratio, 1, 10.0f * Time.deltaTime);
+	void UpdateIdle()
+	{
+	}
+
+	void UpdateSkill()
+	{
+		if (_lockTarget != null)
+		{
+			Vector3 dir = _lockTarget.transform.position - transform.position;
+			Quaternion quat = Quaternion.LookRotation(dir);
+			transform.rotation = Quaternion.Lerp(transform.rotation, quat, 20 * Time.deltaTime);
+		}
+	}
+
+	void OnHitEvent()
+	{
+		Debug.Log("OnHitEvent");
         Animator anim = GetComponent<Animator>();
-        anim.SetFloat("speed", _speed);
+        anim.SetBool("attack", false);
+        // TODO
+        if (_stopSkill)
+		{
+			State = PlayerState.Idle;
+		}
+		else
+		{
+			State = PlayerState.Skill;
+		}
+	}
 
-        //anim.SetFloat("wait_run_ratio", wait_run_ratio); // 1
-        //anim.Play("WAIT_RUN");
-    }
-
-    void UpdateIdle()
+	void Update()
     {
-        //¾Ö´Ï¸ŞÀÌ¼Ç
-        //wait_run_ratio = Mathf.Lerp(wait_run_ratio, 0, 10.0f * Time.deltaTime);
-        Animator anim = GetComponent<Animator>();
-        //ÇöÀç °ÔÀÓ »óÅÂ¿¡ ´ëÇÑ Á¤º¸ ³Ñ°ÜÁØ´Ù
-        anim.SetFloat("speed", 0);
+		switch (State)
+		{
+			case PlayerState.Die:
+				UpdateDie();
+				break;
+			case PlayerState.Moving:
+				UpdateMoving();
+				break;
+			case PlayerState.Idle:
+				UpdateIdle();
+				break;
+			case PlayerState.Skill:
+				UpdateSkill();
+				break;
+		}
+	}
 
-        //anim.SetFloat("wait_run_ratio", wait_run_ratio); // 0
-        //anim.Play("WAIT_RUN");
-    }
+	bool _stopSkill = false;
 
+	void OnMouseEvent(Define.MouseEvent evt)
+	{
+		switch (State)
+		{
+			case PlayerState.Idle:
+				OnMouseEvent_IdleRun(evt);
+				break;
+			case PlayerState.Moving:
+				OnMouseEvent_IdleRun(evt);
+				break;
+			case PlayerState.Skill:
+				{
+					if (evt == Define.MouseEvent.PointerUp)
+						_stopSkill = true;
+				}
+				break;
+		}
+	}
 
+	void OnMouseEvent_IdleRun(Define.MouseEvent evt)
+	{
+		RaycastHit hit;
+		Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+		bool raycastHit = Physics.Raycast(ray, out hit, 100.0f, _mask);
+		//Debug.DrawRay(Camera.main.transform.position, ray.direction * 100.0f, Color.red, 1.0f);
 
-    void Update()
-    {
-        /*  Local ÁÂÇ¥ -> World ÁÂÇ¥ 
-            transform.TransformDirection
-            :ÀÚ±â°¡ ¹Ù¶óº¸´Â ¹æÇâÀ» ·ÎÄÃÀ» ±âÁØÀ¸·Î °è»êÇØÁÜ
-            transform.TransformDirection(Vector3.forward * Time.deltaTime * speed)
-            : ·ÎÄÃÀ» ±âÁØÀ¸·Î °è»êÇØ¼­ ¿ùµå¿¡ ´ëÀÔÇÒ ¼ö ÀÖ°Ô ÇÑ´Ù
-        */
+		switch (evt)
+		{
+			case Define.MouseEvent.PointerDown:
+				{
+					if (raycastHit)
+					{
+						_destPos = hit.point;
+						State = PlayerState.Moving;
+						_stopSkill = false;
 
-        /*  World ÁÂÇ¥ -> Local ÁÂÇ¥
-            InverseTransformDirection
-         */
-        _yAngle += Time.deltaTime * _speed;
-        //transform.eulerAngles = new Vector3(0.0f, _yAngle, 0.0f);
-        //  À§´Â 360µµ ³Ñ¾î°¡¸é ¿À·ù »ı±â´Ï ¾Æ·¡Ã³·³ RotateÀÌ¿ëÇØÁÖ´Â °ÍÀÌ ÁÁ´Ù
-        //transform.Rotate(new Vector3(0.0f, Time.deltaTime * 100.0f, 0.0f));
-
-        // x,y,zÃà¸¸ ¾²¸é gimbal lock ÀÌ½´°¡ »ı±è
-        // ±×·¡¼­ ÄõÅÍ, 4¹øÂ° ÃàÀÌ ÇÊ¿äÇÔ
-        //transform.rotation = Quaternion.Euler(0.0f, _yAngle, 0.0f);
-
-
-
-       
-        /* state ÆĞÅÏ - ±Ô¸ğ ÀÛÀ» ¶§ ÁÁÀ½
-         *  (1) 1¹ø¿¡ 1°³ÀÇ »óÅÂ¸¸ °¡´É
-         *  (2) ¿òÁ÷ÀÌ¸é¼­ ½ºÅ³¾²·Á¸é stateÆĞÅÏÀº ¸ø¾¸
-         *  
-         */
-        switch(_state)
-        {
-            case PlayerState.Die:
-                UpdateDie();
-                break;
-            case PlayerState.Moving:
-                UpdateMoving();
-                break;
-            case PlayerState.Idle:
-                UpdateIdle();
-                break;
-        }
-       
-       
-
-
-
-    }
-
-   /* void OnKeyboard()
-    {
-
-        if (Input.GetKey(KeyCode.W))
-        {
-            transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.LookRotation(Vector3.forward), 0.2f);
-            transform.position += Vector3.forward * Time.deltaTime * _speed;
-            // ·ÎÄÃ·Î ÇÏ¸é ÇÃ·¹ÀÌ¾î°¡ ¹Ù¶óº¸´Â ¹æÇâÀ¸·Î ¸ÕÀú µû¶ó°¡±â ¶§¹®¿¡
-            // Slerp¿¡ ¼³Á¤ÇÑ´ë·Î Ä¿ºê¸¦ ±×¸®°Ô µÈ´Ù
-            // ±×·¡¼­ ¿ùµå¹æÇâÀ¸·Î ¹Ù²ãÁà¾ß ÈÎ¾À ÀÚ¿¬½º·´´Ù
-        }
-
-        if (Input.GetKey(KeyCode.S))
-        {
-            transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.LookRotation(Vector3.back), 0.2f);
-            transform.position += Vector3.back * Time.deltaTime * _speed;
-        }
-
-        if (Input.GetKey(KeyCode.A))
-        {
-            transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.LookRotation(Vector3.left), 0.2f);
-            transform.position += Vector3.left * Time.deltaTime * _speed;
-        }
-
-        //new Vector3(1.0f, 0.0f, 0.0f) ·Î ¾µ ¼öµµ ÀÖ´Âµ¥,
-        //ÀÌ°Ô ´õ °¡µ¶¼ºµµ ³ô°í ÆíÇÔ
-        if (Input.GetKey(KeyCode.D))
-        {
-            transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.LookRotation(Vector3.right), 0.2f);
-            transform.position += Vector3.right * Time.deltaTime * _speed;
-        }
-        _moveToDest = false;
-    }*/
-
-
-
+						if (hit.collider.gameObject.layer == (int)Define.Layer.Monster)
+							_lockTarget = hit.collider.gameObject;
+						else
+							_lockTarget = null;
+					}
+				}
+				break;
+			case Define.MouseEvent.Press:
+				{
+					if (_lockTarget == null && raycastHit)
+						_destPos = hit.point;
+				}
+				break;
+			case Define.MouseEvent.PointerUp:
+				_stopSkill = true;
+				break;
+		}
+	}
 }

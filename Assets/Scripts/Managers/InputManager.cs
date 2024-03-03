@@ -1,4 +1,4 @@
-using System;
+ï»¿using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -7,38 +7,48 @@ using UnityEngine.EventSystems;
 public class InputManager
 {
     public Action KeyAction = null;
-    public Action <Define.MouseEvent> MouseAction = null;
+    public Action<Define.MouseEvent> MouseAction = null;
 
     bool _pressed = false;
+    float _pressedTime = 0;
 
-    public void onUpdate()
+    public void OnUpdate()
     {
-        if (EventSystem.current.IsPointerOverGameObject()) // UIÅ¬¸¯µÈ »óÈ²ÀÌ¸é ¸®ÅÏ
+        if (EventSystem.current.IsPointerOverGameObject())
             return;
 
-        if (Input.anyKey && KeyAction != null ) //anykey´Â ¸¶¿ì½º¶û Å° µÑ ´Ù ÀÎ½Ä
-            KeyAction.Invoke();
+        if (Input.anyKey && KeyAction != null)
+				KeyAction.Invoke();
 
-        if(MouseAction != null)
+        if (MouseAction != null)
         {
-            if (Input.GetMouseButton(0)) // ¸¶¿ì½º ¹öÆ° ´©¸§
+            if (Input.GetMouseButton(0))
             {
+                if (!_pressed)
+                {
+                    MouseAction.Invoke(Define.MouseEvent.PointerDown);
+                    _pressedTime = Time.time;
+                }
                 MouseAction.Invoke(Define.MouseEvent.Press);
-                _pressed = true; // 0.2ÃÊ ÀÌ»ó Áö¼ÓµÇ¸é drag°¡ µÇ°Ô
-                                 // drag¸¦ Ãß°¡ÇÒ¼öµµÀÖÀ½
+                _pressed = true;
             }
             else
             {
                 if (_pressed)
-                    MouseAction.Invoke(Define.MouseEvent.Click);
+                {
+                    if (Time.time < _pressedTime + 0.2f) // pressedTimeì´í›„ì— 0.2ì´ˆ ì•ˆì— ë—€ ê²½ìš°
+                        MouseAction.Invoke(Define.MouseEvent.Click);
+                    MouseAction.Invoke(Define.MouseEvent.PointerUp);
+                }
                 _pressed = false;
+                _pressedTime = 0;
             }
         }
     }
 
     public void Clear()
     {
-        KeyAction = null;   
+        KeyAction = null;
         MouseAction = null;
     }
 }

@@ -1,9 +1,16 @@
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class Define 
+public class Define
 {
+    public enum Layer
+    {
+        Monster = 8,
+        Ground = 9,
+        Block = 10,
+    }
+
     public enum Scene
     {
         Unknown,
@@ -21,21 +28,20 @@ public class Define
 
     public enum UIEvent
     {
-        Cilck,
+        Click,
         Drag,
     }
 
     public enum MouseEvent
     {
         Press,
+        PointerDown,
+        PointerUp,
         Click,
     }
 
-
     public enum CameraMode
     {
-        QuaterView,
+        QuarterView,
     }
-
-
 }

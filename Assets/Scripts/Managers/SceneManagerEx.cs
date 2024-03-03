@@ -1,24 +1,16 @@
-using System.Collections;
+癤퓎sing System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
-public class SceneManagerEx 
+public class SceneManagerEx
 {
-    public BaseScene CurrentScene
-    {    // BaseScene 컴포넌트를 들고있는 애를 찾아주세요
-        get {  return GameObject.FindObjectOfType<BaseScene>(); }
-    }
-    
+    public BaseScene CurrentScene { get { return GameObject.FindObjectOfType<BaseScene>(); } }
 
-
-    public void LoadScene(Define.Scene type)
+	public void LoadScene(Define.Scene type)
     {
         Managers.Clear();
 
-        /* Define.Scene에 있는 이름과 일치하는
-         * 실제 유니티 Scenes에 있는 씬 가져옴
-        */
         SceneManager.LoadScene(GetSceneName(type));
     }
 
@@ -30,7 +22,6 @@ public class SceneManagerEx
 
     public void Clear()
     {
-        // 현재 사용하던 씬 날려줌
         CurrentScene.Clear();
     }
 }

@@ -77,6 +77,7 @@ public class TestCollision : MonoBehaviour
         // 실전 응용예시: 땅을 찍었을 때 그 위치로 플레이어 이동
         if (Input.GetMouseButtonDown(0))
         {
+            Debug.Log(Input.mousePosition);
             Ray ray = Camera.main.ScreenPointToRay( Input.mousePosition );
 
             Debug.DrawRay(Camera.main.transform.position, ray.direction * 100.0f, Color.red, 1.0f);

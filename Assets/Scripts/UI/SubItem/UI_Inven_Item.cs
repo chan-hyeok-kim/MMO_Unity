@@ -1,9 +1,6 @@
-using System;
-using System.Collections;
+Ôªøusing System.Collections;
 using System.Collections.Generic;
-using TMPro;
 using UnityEngine;
-using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
 public class UI_Inven_Item : UI_Base
@@ -14,7 +11,7 @@ public class UI_Inven_Item : UI_Base
         ItemNameText,
     }
 
-    String _name;
+    string _name;
 
     void Start()
     {
@@ -24,14 +21,12 @@ public class UI_Inven_Item : UI_Base
     public override void Init()
     {
         Bind<GameObject>(typeof(GameObjects));
+        Get<GameObject>((int)GameObjects.ItemNameText).GetComponent<Text>().text = _name;
 
-        Get<GameObject>((int)GameObjects.ItemNameText).GetComponent<TextMeshProUGUI>().text = _name;
-
-        Get<GameObject>((int)GameObjects.ItemIcon).BindEvent((PointerEventData) => { Debug.Log($"æ∆¿Ã≈€ ≈¨∏Ø! {_name}"); });
-
+        Get<GameObject>((int)GameObjects.ItemIcon).BindEvent((PointerEventData) => { Debug.Log($"ÏïÑÏù¥ÌÖú ÌÅ¥Î¶≠! {_name}"); });
     }
 
-    public void SetInfo(String name)
+    public void SetInfo(string name)
     {
         _name = name;
     }

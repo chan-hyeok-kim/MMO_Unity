@@ -1,16 +1,13 @@
-using System.Collections;
+Ôªøusing System.Collections;
 using System.Collections.Generic;
-using Unity.VisualScripting;
 using UnityEngine;
-using UnityEngine.Animations;
-using static UnityEngine.UI.Image;
 
-public class PoolManager 
+public class PoolManager
 {
-    #region Pool
-    class Pool
+	#region Pool
+	class Pool
     {
-        public GameObject Original {  get; private set; }   
+        public GameObject Original { get; private set; }
         public Transform Root { get; set; }
 
         Stack<Poolable> _poolStack = new Stack<Poolable>();
@@ -21,17 +18,14 @@ public class PoolManager
             Root = new GameObject().transform;
             Root.name = $"{original.name}_Root";
 
-            for(int i=0; i<count; i++)
-            {
+            for (int i = 0; i < count; i++)
                 Push(Create());
-            }
         }
 
         Poolable Create()
         {
             GameObject go = Object.Instantiate<GameObject>(Original);
             go.name = Original.name;
-            
             return go.GetOrAddComponent<Poolable>();
         }
 
@@ -41,7 +35,7 @@ public class PoolManager
                 return;
 
             poolable.transform.parent = Root;
-            poolable.gameObject.SetActive(true);
+            poolable.gameObject.SetActive(false);
             poolable.IsUsing = false;
 
             _poolStack.Push(poolable);
@@ -58,7 +52,7 @@ public class PoolManager
 
             poolable.gameObject.SetActive(true);
 
-            // DontDestoryOnLoad «ÿ¡¶ øÎµµ
+            // DontDestroyOnLoad Ìï¥Ï†ú Ïö©ÎèÑ
             if (parent == null)
                 poolable.transform.parent = Managers.Scene.CurrentScene.transform;
 
@@ -68,9 +62,9 @@ public class PoolManager
             return poolable;
         }
     }
-    #endregion
+	#endregion
 
-    Dictionary<string, Pool> _pool = new Dictionary<string, Pool>();
+	Dictionary<string, Pool> _pool = new Dictionary<string, Pool>();
     Transform _root;
 
     public void Init()
@@ -86,7 +80,7 @@ public class PoolManager
     {
         Pool pool = new Pool();
         pool.Init(original, count);
-        pool.Root.parent = _root; // -> _root¥¬ @Pool_Root
+        pool.Root.parent = _root;
 
         _pool.Add(original.name, pool);
     }
@@ -94,9 +88,9 @@ public class PoolManager
     public void Push(Poolable poolable)
     {
         string name = poolable.gameObject.name;
-        if (_pool.ContainsKey(name) == false) 
-        {       // ∆À¿ª «—π¯µµ æ»«ÿº≠ «Æø° æ¯¥¬µ• «™Ω¨«œ¥¬ ∞ÊøÏ
-            GameObject.Destroy(poolable.gameObject); 
+        if (_pool.ContainsKey(name) == false)
+        {
+            GameObject.Destroy(poolable.gameObject);
             return;
         }
 
@@ -115,13 +109,12 @@ public class PoolManager
     {
         if (_pool.ContainsKey(name) == false)
             return null;
-
         return _pool[name].Original;
     }
 
     public void Clear()
     {
-        foreach(Transform child in _root)
+        foreach (Transform child in _root)
             GameObject.Destroy(child.gameObject);
 
         _pool.Clear();

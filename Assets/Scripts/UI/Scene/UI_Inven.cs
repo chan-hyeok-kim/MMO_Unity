@@ -1,4 +1,4 @@
-using System.Collections;
+ï»¿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -11,7 +11,7 @@ public class UI_Inven : UI_Scene
 
     void Start()
     {
-        Init();   
+        Init();
     }
 
     public override void Init()
@@ -21,20 +21,15 @@ public class UI_Inven : UI_Scene
         Bind<GameObject>(typeof(GameObjects));
 
         GameObject gridPanel = Get<GameObject>((int)GameObjects.GridPanel);
-        foreach(Transform child in gridPanel.transform)
+        foreach (Transform child in gridPanel.transform)
             Managers.Resource.Destroy(child.gameObject);
-        
 
-        for(int i=0; i< 8; i++) // 8°³ÀÇ ¾ÆÀÌÅÛ+Ä­ ¸¸µé±â
+        // ì‹¤ì œ ì¸ë²¤í† ë¦¬ ì •ë³´ë¥¼ ì°¸ê³ í•´ì„œ
+        for (int i = 0; i < 8; i++)
         {
-            
-            GameObject item = Managers.UI.MakeSubItem<UI_Inven_Item>(gridPanel.transform).gameObject   ; //ÇÁ¸®ÆÕÀ» ±â¹ÝÀ¸·Î »ý¼º
-            //item.transform.SetParent(gridPanel.transform); // ±×¸®µåÆÐ³ÎÀ» ºÎ¸ð·Î
-
-            UI_Inven_Item inven_Item = item.GetOrAddComponent<UI_Inven_Item>(); // ÇÁ¸®ÆÕ¿¡ ÄÄÆ÷³ÍÆ® ºÙ¿©ÁÖ±â
-            inven_Item.SetInfo($"Sword NO.{i}");
+            GameObject item = Managers.UI.MakeSubItem<UI_Inven_Item>(gridPanel.transform).gameObject;            
+            UI_Inven_Item invenItem = item.GetOrAddComponent<UI_Inven_Item>();
+            invenItem.SetInfo($"ì§‘í–‰ê²€{i}ë²ˆ");
         }
-
     }
-  
 }
