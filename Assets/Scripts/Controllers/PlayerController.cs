@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.AI;
@@ -54,7 +55,9 @@ public class PlayerController : MonoBehaviour
 		_stat = gameObject.GetComponent<PlayerStat>();
 
 		Managers.Input.MouseAction -= OnMouseEvent;
-		Managers.Input.MouseAction += OnMouseEvent;	
+		Managers.Input.MouseAction += OnMouseEvent;
+
+		Managers.UI.MakeWorldSpaceUI<UI_HPBar>(transform);
 	}
 
 	void UpdateDie()
@@ -122,8 +125,18 @@ public class PlayerController : MonoBehaviour
 	void OnHitEvent()
 	{
 		Debug.Log("OnHitEvent");
-        Animator anim = GetComponent<Animator>();
-        anim.SetBool("attack", false);
+        //Animator anim = GetComponent<Animator>();
+        //anim.SetBool("attack", false);
+
+		if(_lockTarget != null)
+		{
+			Stat targetStat = _lockTarget.GetComponent<Stat>();
+			Stat myStat = gameObject.GetComponent<PlayerStat>();
+			int damage = Mathf.Max(0, myStat.Attack - targetStat.Defense); //데미지가 음수면 0으로
+			Debug.Log(damage);
+			targetStat.Hp -= damage;
+		}
+
         // TODO
         if (_stopSkill)
 		{
