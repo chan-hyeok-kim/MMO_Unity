@@ -4,26 +4,69 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.AI;
 
-public class PlayerController : BaseController
+public class PlayerController : MonoBehaviour
 {
-	
+	public enum PlayerState
+	{
+		Die,
+		Moving,
+		Idle,
+		Skill,
+	}
+
 	int _mask = (1 << (int)Define.Layer.Ground) | (1 << (int)Define.Layer.Monster);
 
-    PlayerStat _stat;
+	PlayerStat _stat;
+	Vector3 _destPos;
 
-    bool _stopSkill = false;
-	
-	public override void Init()
+	[SerializeField]
+	PlayerState _state = PlayerState.Idle;
+
+	GameObject _lockTarget;
+
+	public PlayerState State
+	{
+		get { return _state; }
+		set
+		{
+			_state = value;
+
+			Animator anim = GetComponent<Animator>();
+			switch (_state)
+			{
+				case PlayerState.Die:
+					break;
+				case PlayerState.Idle:
+					anim.CrossFade("WAIT", 0f);
+					break; 
+				case PlayerState.Moving:
+					anim.CrossFade("RUN", 0.1f);
+					break;
+				case PlayerState.Skill:
+                    anim.SetBool("attack", true);
+                    anim.CrossFade("ATTACK", 0.1f, -1, 0);
+					break;
+			}
+		}
+	}
+
+	void Start()
     {
 		_stat = gameObject.GetComponent<PlayerStat>();
+
 		Managers.Input.MouseAction -= OnMouseEvent;
 		Managers.Input.MouseAction += OnMouseEvent;
 
-        if (gameObject.GetComponentInChildren<UI_HPBar>() == null)
-            Managers.UI.MakeWorldSpaceUI<UI_HPBar>(transform);
+		Managers.UI.MakeWorldSpaceUI<UI_HPBar>(transform);
 	}
 
-	protected override void UpdateMoving()
+	void UpdateDie()
+	{
+		// 아무것도 못함
+
+	}
+
+	void UpdateMoving()
 	{
 		// 몬스터가 내 사정거리보다 가까우면 공격
 		if (_lockTarget != null)
@@ -32,7 +75,7 @@ public class PlayerController : BaseController
 			float distance = (_destPos - transform.position).magnitude;
 			if (distance <= 1)
 			{
-				State = Define.State.Skill;
+				State = PlayerState.Skill;
 				return;
 			}
 		}
@@ -41,29 +84,35 @@ public class PlayerController : BaseController
 		Vector3 dir = _destPos - transform.position;
 		if (dir.magnitude < 0.1f)
 		{
-			State = Define.State.Idle;
+			State = PlayerState.Idle;
 		}
 		else
 		{
+			NavMeshAgent nma = gameObject.GetOrAddComponent<NavMeshAgent>();
+			float moveDist = Mathf.Clamp(_stat.MoveSpeed * Time.deltaTime, 0, dir.magnitude);
+			nma.Move(dir.normalized * moveDist);
+
 			Debug.DrawRay(transform.position + Vector3.up * 0.5f, dir.normalized, Color.green);
 			if (Physics.Raycast(transform.position + Vector3.up * 0.5f, dir, 1.0f, LayerMask.GetMask("Block")))
 			{
 				if (Input.GetMouseButton(0) == false) //마우스를 누르고 있지 않다면
-					State = Define.State.Idle;
+					State = PlayerState.Idle;
 				return;
 			}
 
-			float moveDist = Mathf.Clamp(_stat.MoveSpeed * Time.deltaTime, 0, dir.magnitude);
             float smoothTime = 0.1f; 
             Vector3 currentVelocity = Vector3.zero;
-			transform.position += dir.normalized * moveDist;
             transform.rotation = Quaternion.LookRotation(Vector3.SmoothDamp(transform.forward, dir, ref currentVelocity, smoothTime));
 
            // transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.LookRotation(dir), 20 * Time.deltaTime);
 		}
 	}
 
-    protected override void UpdateSkill()
+	void UpdateIdle()
+	{
+	}
+
+	void UpdateSkill()
 	{
 		if (_lockTarget != null)
 		{
@@ -91,25 +140,46 @@ public class PlayerController : BaseController
         // TODO
         if (_stopSkill)
 		{
-			State = Define.State.Idle;
+			State = PlayerState.Idle;
 		}
 		else
 		{
-			State = Define.State.Skill;
+			State = PlayerState.Skill;
 		}
 	}
-	
+
+	void Update()
+    {
+		switch (State)
+		{
+			case PlayerState.Die:
+				UpdateDie();
+				break;
+			case PlayerState.Moving:
+				UpdateMoving();
+				break;
+			case PlayerState.Idle:
+				UpdateIdle();
+				break;
+			case PlayerState.Skill:
+				UpdateSkill();
+				break;
+		}
+	}
+
+	bool _stopSkill = false;
+
 	void OnMouseEvent(Define.MouseEvent evt)
 	{
 		switch (State)
 		{
-			case Define.State.Idle:
+			case PlayerState.Idle:
 				OnMouseEvent_IdleRun(evt);
 				break;
-			case Define.State.Moving:
+			case PlayerState.Moving:
 				OnMouseEvent_IdleRun(evt);
 				break;
-			case Define.State.Skill:
+			case PlayerState.Skill:
 				{
 					if (evt == Define.MouseEvent.PointerUp)
 						_stopSkill = true;
@@ -132,7 +202,7 @@ public class PlayerController : BaseController
 					if (raycastHit)
 					{
 						_destPos = hit.point;
-						State = Define.State.Moving;
+						State = PlayerState.Moving;
 						_stopSkill = false;
 
 						if (hit.collider.gameObject.layer == (int)Define.Layer.Monster)
@@ -154,10 +224,3 @@ public class PlayerController : BaseController
 		}
 	}
 }
-
-/*  virtual은 protected override로
- *  abstract는 public override로 
- *  둘의 기능적인 차이:
- *  abstract는 강제 구현
- *  virtual은 옵션
- */
