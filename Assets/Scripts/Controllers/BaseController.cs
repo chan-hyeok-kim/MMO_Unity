@@ -5,7 +5,7 @@ using UnityEngine.AI;
 
 public abstract class BaseController : MonoBehaviour
 {
-       
+
 
     [SerializeField]
     protected Vector3 _destPos;
@@ -15,6 +15,8 @@ public abstract class BaseController : MonoBehaviour
 
     [SerializeField]
     protected GameObject _lockTarget;
+
+    public Define.WorldObject WorldObjectType { get; protected set; } = Define.WorldObject.Unknown;
 
     public virtual Define.State State
     {
@@ -35,7 +37,7 @@ public abstract class BaseController : MonoBehaviour
                     anim.CrossFade("RUN", 0.1f);
                     break;
                 case Define.State.Skill:
-                    anim.SetBool("attack", true);
+                  //  anim.SetBool("attack", true);
                     anim.CrossFade("ATTACK", 0.1f, -1, 0);
                     break;
             }
@@ -47,7 +49,7 @@ public abstract class BaseController : MonoBehaviour
         Init();
     }
 
-   
+
 
     void Update()
     {
@@ -75,5 +77,5 @@ public abstract class BaseController : MonoBehaviour
     protected virtual void UpdateSkill() { }
 
 
-    
+
 }

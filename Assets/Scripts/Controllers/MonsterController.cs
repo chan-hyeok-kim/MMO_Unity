@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.AI;
+using UnityEngine.UIElements;
 
 public class MonsterController : BaseController
 {
@@ -16,27 +17,27 @@ public class MonsterController : BaseController
 
     public override void Init()
     {
+        WorldObjectType = Define.WorldObject.Monster;
         _stat = gameObject.GetComponent<Stat>();
 
-        if(gameObject.GetComponentInChildren<UI_HPBar>() == null ) //s안붙이게 주의
-        Managers.UI.MakeWorldSpaceUI<UI_HPBar>(transform);
+        if (gameObject.GetComponentInChildren<UI_HPBar>() == null) //s안붙이게 주의
+            Managers.UI.MakeWorldSpaceUI<UI_HPBar>(transform);
     }
 
     protected override void UpdateIdle()
     {
-        Debug.Log("Monster Idle");
 
         // TODO: 매니저가 생기면 옮기자
-        GameObject player = GameObject.FindGameObjectWithTag("Player");
+        GameObject player = Managers.Game.GetPlayer();
         if (player == null)
             return;
 
         float distance = (player.transform.position - transform.position).magnitude;
-        if(distance <= _scanRange )
+        if (distance <= _scanRange)
         {
             _lockTarget = player;
             State = Define.State.Moving;
-            return; 
+            return;
         }
     }
 
@@ -89,18 +90,19 @@ public class MonsterController : BaseController
 
     void OnHitEvent()
     {
-   
-      //  Animator anim = GetComponent<Animator>();
-       // anim.SetBool("attack", false);
 
         if (_lockTarget != null)
         {
+            //체력
             Stat targetStat = _lockTarget.GetComponent<Stat>();
-            Stat myStat = gameObject.GetComponent<Stat>();
-            int damage = Mathf.Max(0, myStat.Attack - targetStat.Defense); //데미지가 음수면 0으로
-            targetStat.Hp -= damage;
+            targetStat.OnAttacked(_stat);
 
-            if(targetStat.Hp > 0)
+            if(targetStat.Hp <= 0)
+            {
+               // Managers.Game.Despawn(targetStat.gameObject);
+            }
+
+            if (targetStat.Hp > 0)
             {
                 float distance = (_lockTarget.transform.position - transform.position).magnitude;
                 if (distance < _attackRange)
@@ -118,6 +120,6 @@ public class MonsterController : BaseController
             State = Define.State.Idle;
         }
 
-        
+
     }
 }

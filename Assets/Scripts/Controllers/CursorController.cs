@@ -26,7 +26,7 @@ public class CursorController : MonoBehaviour
 
     void Update()
     {
-		if (Input.GetMouseButton(0)) // 마우스를 누르고 있다면
+		if (Input.GetMouseButton(0))
 			return;
 
 		Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);

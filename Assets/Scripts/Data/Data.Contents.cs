@@ -10,11 +10,13 @@ namespace Data
 	public class Stat
 	{
 		public int level;
-		public int hp;
+		public int maxHp;
 		public int attack;
-	}
+        public int totalExp;
 
-	[Serializable]
+    }
+
+    [Serializable]
 	public class StatData : ILoader<int, Stat>
 	{
 		public List<Stat> stats = new List<Stat>();

@@ -36,7 +36,7 @@ public class InputManager
             {
                 if (_pressed)
                 {
-                    if (Time.time < _pressedTime + 0.2f) // pressedTime이후에 0.2초 안에 뗀 경우
+                    if (Time.time < _pressedTime + 0.2f)
                         MouseAction.Invoke(Define.MouseEvent.Click);
                     MouseAction.Invoke(Define.MouseEvent.PointerUp);
                 }
